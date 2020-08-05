@@ -1,0 +1,30 @@
+$basic-margin: 32px;
+$basic-padding: 24px;
+
+$normal-font-size: 16px;
+$large-font-size: 20px;
+
+// $deepBlue: rgba(0,33,64,1);
+$deepBlue: #2f3a5c;
+$blue: #3a2b7e;
+$blue-active: #00fffb;
+$grey: #dde1e8;
+$background: linear-gradient(150deg, #3a2b7e, #2f3a5c);
+$background-gray: #f0f2f5;
+
+$shadow: 1px 1px 6px 0px rgba(0, 0, 0, 0.15);
+$trans: 0.6s ease 0s;
+
+$max-width: 1440px;
+$sm: 768px;
+$md: 992px;
+$lg: 1200px;
+
+/*
+Mixin
+*/
+@mixin responsive($screen) {
+  @media screen and(max-width:#{$screen}) {
+    @content;
+  }
+}
