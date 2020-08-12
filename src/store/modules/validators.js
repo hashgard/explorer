@@ -128,15 +128,18 @@ export default {
         return Promise.reject()
       }
       let result = [];
-      data.result.forEach(i => {
-        i.entries.forEach(m => {
-          result.push({
-            entries: m,
-            delegator_address: i.delegator_address,
-            validator_address: i.validator_address
+      if (!isEmpty(data.result)) {
+        data.result.forEach(i => {
+          i.entries.forEach(m => {
+            result.push({
+              entries: m,
+              delegator_address: i.delegator_address,
+              validator_address: i.validator_address
+            })
           })
         })
-      })
+      }
+
       result.sort((a, b) => {
         return b.entries.balance - a.entries.balance
       })
@@ -152,16 +155,19 @@ export default {
         return Promise.reject()
       }
       let result = []
-      data.result.forEach(i => {
-        i.entries.forEach(m => {
-          result.push({
-            entries: m,
-            delegator_address: i.delegator_address,
-            validator_dst_address: i.validator_dst_address,
-            validator_src_address: i.validator_src_address
+      if (!isEmpty(data.result)) {
+        data.result.forEach(i => {
+          i.entries.forEach(m => {
+            result.push({
+              entries: m,
+              delegator_address: i.delegator_address,
+              validator_dst_address: i.validator_dst_address,
+              validator_src_address: i.validator_src_address
+            })
           })
         })
-      })
+      }
+
       result.sort((a, b) => {
         return b.entries.balance - a.entries.balance
       })
