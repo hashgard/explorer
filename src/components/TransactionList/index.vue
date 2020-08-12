@@ -41,10 +41,13 @@
               v-else-if="action(scope.row) == 'delegate' || action(scope.row) == 'begin_redelegate' || action(scope.row) == 'begin_unbonding'"
               :list="[get(scope.row, 'tx.value.msg.0.value.amount')]"
             />
-            <data-amount
-              v-else-if="action(scope.row) == 'withdraw_delegator_reward'"
-              :list="withdrawRewardList(scope.row)"
-            />
+            <span v-else-if="action(scope.row) == 'withdraw_delegator_reward'">
+              <data-amount
+                v-if="!isEmpty(withdrawRewardList(scope.row))"
+                :list="withdrawRewardList(scope.row)"
+              />
+              <span v-else>-</span>
+            </span>
             <data-amount
               v-else-if="action(scope.row) == 'grid999_dapp_withdraw'"
               :list="gridWithdrawRewards(scope.row)"
@@ -144,6 +147,7 @@ export default {
   },
   methods: {
     get,
+    isEmpty,
     rewardList(row, key) {
       const val = get(row, key);
 
@@ -166,7 +170,11 @@ export default {
             { denom: "uggt", amount: 0 }
           ];
         }
-        list = reward[detail.index].value.split(",");
+        if (!isEmpty(reward[detail.index])) {
+          list = reward[detail.index].value.split(",");
+        } else {
+          list = [];
+        }
       } else {
         const reward =
           find(get(eventsMessage[0], "attributes"), {
