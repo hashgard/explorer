@@ -11,14 +11,12 @@
     "
     :to="`/${type}/${link || content}?type=contract`"
     :class="`${ellipsis ? 'ellipsis' : ''}`"
-    >{{ content }}</router-link
-  >
+  >{{ content }}</router-link>
   <router-link
     v-else
     :to="`/${type}/${link || content}`"
     :class="`${ellipsis ? 'ellipsis' : ''}`"
-    >{{ content }}</router-link
-  >
+  >{{ content }}</router-link>
 </template>
 <script>
 export default {
@@ -27,8 +25,8 @@ export default {
     link: String,
     content: String,
     ellipsis: { type: Boolean, default: true },
-    action: String,
-  },
+    action: String
+  }
 };
 </script>
 

@@ -14,7 +14,7 @@ import NotFound from './views/NotFound';
 import View from '@/components/View';
 import Alliance from '@/views/Alliances';
 import AllianceDetail from '@/views/AllianceDetail';
-
+import AuthHolders from '@/views/AuthHolders';
 
 // 解决两次访问相同路由地址报错
 const originalPush = Router.prototype.push;
@@ -102,6 +102,10 @@ export default new Router({
     {
       path: '/alliance/:id',
       component: AllianceDetail,
+    },
+    {
+      path: '/holders',
+      component: AuthHolders
     },
     {
       path: '*',

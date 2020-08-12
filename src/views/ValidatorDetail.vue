@@ -92,7 +92,7 @@
               style="width: 100%"
               :empty-text="$t('global.noneData')"
             >
-              <el-table-column label="Balance">
+              <el-table-column label="Amount">
                 <template slot-scope="scope">
                   <span>{{ scope.row.balance | formatShares }}</span>
                 </template>
@@ -145,23 +145,17 @@
               style="width: 100%"
               :empty-text="$t('global.noneData')"
             >
-              <el-table-column label="Balance">
+              <el-table-column label="Amount">
                 <template slot-scope="scope">
-                  <div
-                    v-for="(i, index) in scope.row.entries"
-                    :key="index"
-                  >
-                    {{ i.balance | formatShares }}
+                  <div>
+                    {{ scope.row.entries.balance | formatShares }}
                   </div>
                 </template>
               </el-table-column>
               <el-table-column label="Completion Time">
                 <template slot-scope="scope">
-                  <div
-                    v-for="(i, index) in scope.row.entries"
-                    :key="index"
-                  >
-                    {{ i.completion_time | formatTime }}
+                  <div>
+                    {{ scope.row.entries.completion_time | formatTime }}
                   </div>
                 </template>
               </el-table-column>
@@ -198,6 +192,65 @@
           </card>
         </el-col>
       </el-row>
+      <card title="redelegations">
+        <el-table
+          class="table"
+          :data="redelegations"
+          style="width: 100%"
+          :empty-text="$t('global.noneData')"
+        >
+          <el-table-column label="Amount">
+            <template slot-scope="scope">
+              <span>{{ scope.row.entries.balance | formatShares }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="Completion Time">
+            <template slot-scope="scope">
+              <span>{{scope.row.entries.completion_time | formatTime}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="Creation Height">
+            <template slot-scope="scope">
+              <hg-link
+                type="block"
+                :ellipsis="false"
+                :content="scope.row.entries.creation_height.toString()"
+              ></hg-link>
+            </template>
+          </el-table-column>
+          <el-table-column label="Validator From">
+            <template slot-scope="scope">
+              <hg-link
+                type="validator"
+                :ellipsis="false"
+                :content="scope.row.validator_src_address"
+              ></hg-link>
+            </template>
+          </el-table-column>
+          <el-table-column label="Validator To">
+            <template slot-scope="scope">
+              <hg-link
+                type="validator"
+                :ellipsis="false"
+                :content="scope.row.validator_dst_address"
+              ></hg-link>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div class="card-footer">
+          <el-pagination
+            background
+            :pager-count="5"
+            layout="prev, pager, next"
+            :current-page="currentPageRedelegations"
+            :page-size="5"
+            :total="redelegationsTotal"
+            @prev-click="onPageChangeRedelegations"
+            @next-click="onPageChangeRedelegations"
+            @current-change="onPageChangeRedelegations"
+          />
+        </div>
+      </card>
       <card title="Proposed Blocks">
         <el-table
           class="table"
@@ -272,12 +325,14 @@ export default {
       total: 0,
       currentPage: 1,
       currentPageDelegations: 1,
+      currentPageRedelegations: 1,
       currentPageUnDelegations: 1,
       list: [],
       timer: null,
       currentTime: "",
       distribution: {},
       delegations: [],
+      redelegations: [],
       unbondingDelegations: [],
       pool: {},
       withDrawAddress: ""
@@ -312,6 +367,16 @@ export default {
         }
       );
     },
+    async onPageChangeRedelegations(page) {
+      this.currentPageRedelegations = page;
+      this.redelegations = await this.$store.dispatch(
+        "validators/fetchRedelegations",
+        {
+          address: this.address,
+          page: this.currentPageRedelegations
+        }
+      );
+    },
     async onPageChangeUnDelegations(page) {
       this.currentPageUnDelegations = page;
       this.unbondingDelegations = await this.$store.dispatch(
@@ -327,6 +392,7 @@ export default {
     ...mapState("validators", [
       "details",
       "delegationsTotal",
+      "redelegationsTotal",
       "unbondingDelegationsTotal"
     ]),
     detail() {
@@ -354,6 +420,13 @@ export default {
       {
         address: this.address,
         page: this.currentPageDelegations
+      }
+    );
+    this.redelegations = await this.$store.dispatch(
+      "validators/fetchRedelegations",
+      {
+        address: this.address,
+        page: this.currentPageRedelegations
       }
     );
     this.unbondingDelegations = await this.$store.dispatch(

@@ -41,12 +41,21 @@ export default {
         } else if (i.denom === "ugard") {
           const n = Big(i.amount).div(10 ** 6);
 
-          i.amount = numeral(n.toString()).format("0,0.[000000]");
+          i.amount =
+            n >= 1
+              ? numeral(n.toString()).format("0,0.[000000]")
+              : n < 0.000009
+              ? Big(n).toFixed(10)
+              : n;
           i.denom = "GARD";
         } else if (i.denom === "uggt") {
           const n = Big(i.amount).div(10 ** 6);
-
-          i.amount = numeral(n.toString()).format("0,0.[000000]");
+          i.amount =
+            n >= 1
+              ? numeral(n.toString()).format("0,0.[000000]")
+              : n < 0.000009
+              ? Big(n).toFixed(10)
+              : n;
           i.denom = "GGT";
         } else {
           i.amount = numeral(i.amount).format("0,0.[000000]");

@@ -13,6 +13,7 @@ export default {
     latest: null,
     details: {},
     delegationsTotal: 0,
+    redelegationsTotal: 0,
     unbondingDelegationsTotal: 0,
     rewards: {}
   },
@@ -36,6 +37,9 @@ export default {
     },
     setUnbondingDelegationsTotal(state, data) {
       state.unbondingDelegationsTotal = data
+    },
+    setRedelegationsTotal(state, data) {
+      state.redelegationsTotal = data
     },
     setRewards(state, data) {
       state.rewards = data
@@ -109,6 +113,9 @@ export default {
       if (isEmpty(data)) {
         throw new Error();
       }
+      data.result.sort((a, b) => {
+        return b.balance - a.balance
+      })
       context.commit("setDelegationsTotal", data.result ? data.result.length : 0)
       return Promise.resolve(data.result ? data.result.slice((params.page - 1) * 5, (params.page -
         1) * 5 + 5) : [])
@@ -120,8 +127,46 @@ export default {
       if (isEmpty(data)) {
         return Promise.reject()
       }
-      context.commit("setUnbondingDelegationsTotal", data.result ? data.result.length : 0)
-      return Promise.resolve(data.result ? data.result.slice((params.page - 1) * 5, (params.page -
+      let result = [];
+      data.result.forEach(i => {
+        i.entries.forEach(m => {
+          result.push({
+            entries: m,
+            delegator_address: i.delegator_address,
+            validator_address: i.validator_address
+          })
+        })
+      })
+      result.sort((a, b) => {
+        return b.entries.balance - a.entries.balance
+      })
+      context.commit("setUnbondingDelegationsTotal", result ? result.length : 0)
+      return Promise.resolve(result ? result.slice((params.page - 1) * 5, (params.page -
+        1) * 5 + 5) : [])
+    },
+    async fetchRedelegations(context, params) {
+      const {
+        data
+      } = await $ajax.get(`/staking/redelegations?validator_from=${params.address}`)
+      if (isEmpty(data)) {
+        return Promise.reject()
+      }
+      let result = []
+      data.result.forEach(i => {
+        i.entries.forEach(m => {
+          result.push({
+            entries: m,
+            delegator_address: i.delegator_address,
+            validator_dst_address: i.validator_dst_address,
+            validator_src_address: i.validator_src_address
+          })
+        })
+      })
+      result.sort((a, b) => {
+        return b.entries.balance - a.entries.balance
+      })
+      context.commit("setRedelegationsTotal", result ? result.length : 0)
+      return Promise.resolve(result ? result.slice((params.page - 1) * 5, (params.page -
         1) * 5 + 5) : [])
     },
     async fetchWithdrawAddress(context, address) {

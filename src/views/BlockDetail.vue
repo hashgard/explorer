@@ -1,6 +1,9 @@
 <template>
   <div v-if="detail">
-    <sub-title :title="$t('home.blockHeight')" :sub="`#${height}`" />
+    <sub-title
+      :title="$t('home.blockHeight')"
+      :sub="`#${height}`"
+    />
     <div class="block-detail-content">
       <card :title="$t('block.blockInformation')">
         <data-item :label="$t('home.blockHeight')">
@@ -29,9 +32,15 @@
         </data-item>
       </card>
       <card :title="$t('home.tx')">
-        <transaction-list :fields="fields" :list="transactionList" />
+        <transaction-list
+          :fields="fields"
+          :list="transactionList"
+        />
       </card>
-      <card v-if="validatorList" :title="$t('block.validators')">
+      <card
+        v-if="validatorList"
+        :title="$t('block.validators')"
+      >
         <validator-list :list="validatorList" />
       </card>
     </div>
@@ -39,7 +48,7 @@
 </template>
 
 <script>
-import { get, isEmpty, chunk } from "lodash";
+import { get, isEmpty, chunk, find } from "lodash";
 import { mapState } from "vuex";
 import sha256 from "crypto-js/sha256";
 import Base64 from "crypto-js/enc-base64";
@@ -69,6 +78,12 @@ export default {
         name_zh: "Fee",
         name: "Fee",
         field: "tx.value.fee.amount",
+        linkType: ""
+      },
+      {
+        name_zh: "Amount",
+        name: "Amount",
+        field: "",
         linkType: ""
       },
       {
@@ -126,7 +141,28 @@ export default {
       if (isEmpty(txs)) {
         return null;
       }
-      return txs.map(hash => get(transactionDetails, [hash])).filter(item => !!item);
+      const list = txs
+        .map(hash => get(transactionDetails, [hash]))
+        .filter(item => !!item);
+      let result = [];
+      list.forEach(item => {
+        const eventsMessage = get(item, "events", []).filter(
+          i => i.type === "message"
+        );
+        const action =
+          find(get(eventsMessage[0], "attributes"), {
+            key: "action"
+          }) || {};
+        if (action.value == "withdraw_delegator_reward") {
+          const msg = get(item, "tx.value.msg");
+          msg.forEach((m, index) => {
+            result.push({ ...item, index });
+          });
+        } else {
+          result.push(item);
+        }
+      });
+      return result;
     },
 
     validatorList() {
@@ -175,7 +211,9 @@ export default {
         return;
       }
 
-      this.blockTx[this.num].forEach(hash => this.$store.dispatch("transactions/fetch", hash));
+      this.blockTx[this.num].forEach(hash =>
+        this.$store.dispatch("transactions/fetch", hash)
+      );
 
       this.num += 1;
 

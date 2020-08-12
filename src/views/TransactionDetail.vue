@@ -64,10 +64,16 @@
               v-else-if="item.name === 'Fee Amount'"
               :list="get(detail, item.field)"
             />
-            <data-amount
-              v-else-if="item.name === 'Withdraw Rewards'"
-              :list="rewardList(get(detail, item.field))"
-            />
+            <div v-else-if="item.name === 'Withdraw Rewards'">
+              <p
+                v-for="(i,index) in rewardList(detail)"
+                :key="index"
+              >
+                <data-amount :list="i" />
+              </p>
+
+            </div>
+
             <span v-else-if="item.name === 'Lock End'">
               {{ get(detail, item.field) | formatTime }}
             </span>
@@ -245,6 +251,24 @@
             <span v-else-if="item.name == 'Owner Number'">{{ownerNumber}}</span>
             <span v-else-if="item.name == 'Total Number'">{{total_number}}</span>
             <span v-else-if="item.name == 'Create Grid ID'">{{gridID}}</span>
+            <hg-link
+              v-else-if="item.name == 'Index Delegator Address'"
+              type="address"
+              :content="indexDelegatorAddress"
+              :ellipsis="false"
+            ></hg-link>
+            <div v-else-if="item.name == 'Index Validator Address'">
+              <p
+                v-for="(i,index) in indexValidatorAddress"
+                :key="index"
+              >
+                <hg-link
+                  type="validator"
+                  :content="i"
+                  :ellipsis="false"
+                ></hg-link>
+              </p>
+            </div>
             <span v-else>
               {{ get(detail, item.field) || "-" }}
             </span>
@@ -578,16 +602,18 @@ export default {
       withdraw_delegator_reward: [
         ...defaultFields,
         {
-          name: "Delegator Address",
+          name: "Index Delegator Address",
           name_zh: "Delegator Address",
-          field: "tx.value.msg.0.value.delegator_address",
-          linkType: "address"
+          field: `tx.value.msg.${this.$route.query.index ||
+            0}.value.delegator_address`,
+          linkType: ""
         },
         {
-          name: "Validator Address",
+          name: "Index Validator Address",
           name_zh: "Validator Address",
-          field: "tx.value.msg.0.value.validator_address",
-          linkType: "validator"
+          field: `tx.value.msg.${this.$route.query.index ||
+            0}.value.validator_address`,
+          linkType: ""
         },
         {
           name: "Withdraw Rewards",
@@ -2153,13 +2179,54 @@ export default {
   methods: {
     isEmpty,
     get,
-    rewardList(val) {
-      const list = val.split(",");
-      const result = [];
-      list.forEach(i => {
-        const denom = i.replace(/[^a-z]/gi, "");
-        const amount = i.replace(/[^0-9]/gi, "");
-        result.push({ denom, amount });
+    rewardList(detail) {
+      const eventsMessage = get(detail, "events", []).filter(
+        item => item.type === "withdraw_rewards"
+      );
+      let list;
+      // if (this.$route.query.index >= 0) {
+      //   const reward = get(eventsMessage[0], "attributes", []).filter(
+      //     i => i.key == "amount"
+      //   );
+      //   if (isEmpty(reward)) {
+      //     return [
+      //       { denom: "ugard", amount: 0 },
+      //       { denom: "uggt", amount: 0 }
+      //     ];
+      //   }
+      //   list = reward[this.$route.query.index].value.split(",");
+      // } else {
+      //   const reward =
+      //     find(get(eventsMessage[0], "attributes"), {
+      //       key: "amount"
+      //     }) || {};
+      //   if (isEmpty(reward)) {
+      //     return [
+      //       { denom: "ugard", amount: 0 },
+      //       { denom: "uggt", amount: 0 }
+      //     ];
+      //   }
+      //   list = reward.value.split(",");
+      // }
+      const reward = get(eventsMessage[0], "attributes", []).filter(
+        i => i.key == "amount"
+      );
+      if (isEmpty(reward)) {
+        return [
+          { denom: "ugard", amount: 0 },
+          { denom: "uggt", amount: 0 }
+        ];
+      }
+      let result = [];
+      reward.forEach(m => {
+        let children = [];
+        list = m.value.split(",");
+        list.forEach(i => {
+          const denom = i.replace(/[^a-z]/gi, "");
+          const amount = i.replace(/[^0-9]/gi, "");
+          children.push({ denom, amount });
+        });
+        result.push(children);
       });
       return result;
     },
@@ -2204,6 +2271,34 @@ export default {
   },
   computed: {
     ...mapState("transactions", ["details", "load"]),
+    indexDelegatorAddress() {
+      return get(this.detail, `tx.value.msg.0.value.delegator_address`);
+      // if (this.$route.query.index >= 0) {
+      //   return get(
+      //     this.detail,
+      //     `tx.value.msg.${this.$route.query.index}.value.delegator_address`
+      //   );
+      // } else {
+      //   return get(this.detail, `tx.value.msg.0.value.delegator_address`);
+      // }
+    },
+    indexValidatorAddress() {
+      const eventsMessage = get(this.detail, "events", []).filter(
+        item => item.type === "withdraw_rewards"
+      );
+      let list;
+      const reward = get(eventsMessage[0], "attributes", []).filter(
+        i => i.key == "validator"
+      );
+      if (isEmpty(reward)) {
+        return [];
+      }
+      let result = [];
+      reward.forEach(m => {
+        result.push(m.value);
+      });
+      return result;
+    },
     parseValue() {
       return value => {
         if (!isEmpty(value)) {

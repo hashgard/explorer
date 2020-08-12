@@ -1,26 +1,13 @@
 <template>
   <card :title="cardTitlt">
-    <div class="card-header">
-      <!-- <div
-        class="select-action"
-        v-if="Object.keys(actions).length > 1"
-      >
-        <el-select
-          v-if="Object.keys(actions).length > 1"
-          :disabled="load"
-          :value="selected_key"
-          placeholder="Pls select action"
-          size="small"
-          @change="onSelect"
-        >
-          <el-option
-            v-for="key in Object.keys(actions)"
-            :key="key"
-            :value="key"
-            :label="actions[key]"
-          />
-        </el-select>
-      </div> -->
+    <div
+      class="card-header"
+      v-if="$route.query.module != 'all'"
+    >
+      <span>Total Txs:
+        <span v-if="list.length > 0">{{list[0].id}}</span>
+        <span v-else>0</span>
+      </span>
     </div>
     <transaction-list
       :list="list"
@@ -91,12 +78,20 @@ export default {
           name_zh: this.$t("tx.block"),
           name: "block",
           field: "height",
-          linkType: "block"
+          linkType: "block",
+          width: 100
         },
         {
           name_zh: "Fee",
           name: "Fee",
           field: "tx.value.fee.amount",
+          linkType: "",
+          width: 100
+        },
+        {
+          name_zh: "Amount",
+          name: "Amount",
+          field: "",
           linkType: ""
         },
         {

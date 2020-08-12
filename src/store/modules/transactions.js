@@ -1,6 +1,7 @@
 import {
   get,
-  isEmpty,
+  find,
+  isEmpty
 } from 'lodash';
 import $ajax from '@/utils/ajax';
 
@@ -11,20 +12,27 @@ export default {
     currentPage: 1,
     totalCount: 0,
     list: [],
+    holdersList: [],
     details: {},
     lastList: [],
     recordList: [],
     recordLastList: [],
     contractList: [],
+    addressDelegators: [],
+    addressRedelegations: [],
+    addressUnbonding: [],
     load: false,
     txTotal: 0,
     recordLastPage: true,
     contractLastPage: true,
-    txLastPage: true
+    txLastPage: true,
+    holdersLastPage: true,
+    addressDelegationsBalance: 0,
+    addressDelegationsShares: 0
   },
   getters: {
     lastList: state => state.lastList.slice(0, 5),
-    recordLastList: state => state.recordList.slice(0, 5),
+    recordLastList: state => state.recordList.slice(0, 5)
   },
   mutations: {
     setTotalCount(state, data) {
@@ -35,6 +43,12 @@ export default {
     },
     setListEmpty(state) {
       state.list = [];
+    },
+    setHoldersList(state, list) {
+      state.holdersList = [...state.holdersList, ...list];
+    },
+    setHoldersListEmpty(state) {
+      state.holdersList = [];
     },
     setLastList(state, list) {
       state.lastList = list;
@@ -54,12 +68,12 @@ export default {
     setDetails(state, data) {
       const details = state.details;
       const {
-        txhash,
+        txhash
       } = data;
 
       if (isEmpty(details[txhash])) {
         state.details = Object.assign({}, state.details, {
-          [txhash]: data,
+          [txhash]: data
         });
       }
     },
@@ -78,14 +92,32 @@ export default {
     setTxLastPage(state, data) {
       state.txLastPage = data;
     },
+    setHoldersLastPage(state, data) {
+      state.holdersLastPage = data;
+    },
+    setAddressDelegators(state, data) {
+      state.addressDelegators = data
+    },
+    setAddressDelegationsBalance(state, data) {
+      state.addressDelegationsBalance = data
+    },
+    setAddressDelegationsShares(state, data) {
+      state.addressDelegationsShares = data
+    },
+    setAddressRedelegations(state, data) {
+      state.addressRedelegations = data
+    },
+    setAddressUnbonding(state, data) {
+      state.addressUnbonding = data
+    }
   },
   actions: {
     async fetchTotalCount(
       context,
       params = {
         'message.action': 'send',
-        page: 1,
-      },
+        page: 1
+      }
     ) {
       context.commit('setLoad', true);
 
@@ -129,10 +161,10 @@ export default {
     async fetchList(context, params) {
       context.commit('setLoad', true);
       let url;
-      if (params.id == "") {
-        url = `/scene/txs/${params.module}/0/10/desc`
+      if (params.id == '') {
+        url = `/scene/txs/${params.module}/0/10/desc`;
       } else {
-        url = `/scene/txs/${params.module}/${params.id}/10/desc`
+        url = `/scene/txs/${params.module}/${params.id}/10/desc`;
       }
       const {
         data
@@ -143,34 +175,66 @@ export default {
       if (isEmpty(data)) {
         throw new Error();
       }
-      let result = []
+      let result = [];
       data.result.forEach(i => {
-        i.tx.id = i.id
-        result.push(i.tx)
-      })
+        i.tx.id = i.id;
+        result.push(i.tx);
+      });
       context.commit('setList', result);
+      let num = 0;
+      context.state.list.forEach((item, index, arr) => {
+        const eventsMessage = get(item, 'events', []).filter(i => i.type === 'message');
+        const action =
+          find(get(eventsMessage[0], 'attributes'), {
+            key: 'action'
+          }) || {};
+        if (
+          action.value == 'withdraw_delegator_reward' &&
+          (
+            index > 0 && index < arr.length - 1 ?
+            item.txhash == arr[index - 1].txhash || item.txhash == arr[index + 1].txhash :
+            (index == 0 && arr.length > 1) ?
+            item.txhash == arr[index + 1].txhash :
+            (
+              (index == arr.length - 1 && arr.length > 1) ?
+              item.txhash == arr[index - 1].txhash : false
+            )
+          )
+        ) {
+          item.index = num;
+          if ((index > 0 && index < arr.length - 1) && num >= 1) {
+            if (item.txhash != arr[index + 1].txhash) {
+              num = 0
+            } else {
+              num += 1;
+            }
+          } else {
+            num += 1;
+          }
+        } else {
+          num = 0;
+        }
+      });
       if (data.result.length < 10) {
-        context.commit('setTxLastPage', false)
+        context.commit('setTxLastPage', false);
       } else if (data.result.length >= 10 && data.result[data.result.length - 1].id == 1) {
-        context.commit('setTxLastPage', false)
+        context.commit('setTxLastPage', false);
       } else {
-        context.commit('setTxLastPage', true)
+        context.commit('setTxLastPage', true);
       }
     },
     // 获取所有交易
     async fetchAll(
       context,
       params = {
-        page: 1,
-      },
+        page: 1
+      }
     ) {
       context.commit('setLoad', true);
 
       const {
         data
-      } = await $ajax.get(
-        `/txs?message.action=%20CONTAINS%27%27&page=${params.page}&limit=20`,
-      );
+      } = await $ajax.get(`/txs?message.action=%20CONTAINS%27%27&page=${params.page}&limit=20`);
 
       context.commit('setLoad', false);
 
@@ -185,16 +249,14 @@ export default {
     async fetchAllTotalAcount(
       context,
       params = {
-        page: 1,
-      },
+        page: 1
+      }
     ) {
       context.commit('setLoad', true);
 
       const {
         data
-      } = await $ajax.get(
-        `/txs?message.action=%20CONTAINS%27%27&page=${params.page}&limit=20`,
-      );
+      } = await $ajax.get(`/txs?message.action=%20CONTAINS%27%27&page=${params.page}&limit=20`);
 
       context.commit('setLoad', false);
 
@@ -206,7 +268,7 @@ export default {
     },
     // 上链申请
     async fetchOrgApplyList(context) {
-      const type = encodeURIComponent('CONTAINS\'OrgApply\'');
+      const type = encodeURIComponent("CONTAINS'OrgApply'");
 
       context.commit('setLoad', true);
 
@@ -250,7 +312,7 @@ export default {
       const params = {
         'message.action': encodeURIComponent(`='${action}'`),
         limit: PAGE_SIZE,
-        page: lastPage,
+        page: lastPage
       };
 
       context.commit('setLoad', true);
@@ -271,13 +333,13 @@ export default {
       if (txs.length < PAGE_SIZE && totalCount > PAGE_SIZE) {
         const prePageParams = {
           ...params,
-          page: lastPage - 1,
+          page: lastPage - 1
         };
 
         const {
           data: newData
         } = await $ajax.get('/txs', {
-          params: prePageParams,
+          params: prePageParams
         });
 
         if (isEmpty(newData)) {
@@ -298,7 +360,7 @@ export default {
       const params = {
         'message.action': '%20CONTAINS%27%27',
         limit: PAGE_SIZE,
-        page: lastPage,
+        page: lastPage
       };
 
       context.commit('setLoad', true);
@@ -386,10 +448,10 @@ export default {
     async fetchAddressTxList(context, params) {
       context.commit('setLoad', true);
       let url;
-      if (params.id == "") {
-        url = `/scene/txs/${params.address}/0/10/desc`
+      if (params.id == '') {
+        url = `/scene/txs/${params.address}/0/10/desc`;
       } else {
-        url = `/scene/txs/${params.address}/${params.id}/10/desc`
+        url = `/scene/txs/${params.address}/${params.id}/10/desc`;
       }
       const {
         data
@@ -400,16 +462,50 @@ export default {
       if (isEmpty(data)) {
         throw new Error();
       }
-      let result = []
+      let result = [];
       data.result.forEach(i => {
-        i.tx.id = i.id
-        result.push(i.tx)
-      })
+        i.tx.id = i.id;
+        result.push(i.tx);
+      });
       context.commit('setList', result);
+      let num = 0;
+      context.state.list.forEach((item, index, arr) => {
+        const eventsMessage = get(item, 'events', []).filter(i => i.type === 'message');
+        const action =
+          find(get(eventsMessage[0], 'attributes'), {
+            key: 'action'
+          }) || {};
+        if (
+          action.value == 'withdraw_delegator_reward' &&
+          (
+            index > 0 && index < arr.length - 1 ?
+            item.txhash == arr[index - 1].txhash || item.txhash == arr[index + 1].txhash :
+            (index == 0 && arr.length > 1) ?
+            item.txhash == arr[index + 1].txhash :
+            (
+              (index == arr.length - 1 && arr.length > 1) ?
+              item.txhash == arr[index - 1].txhash : false
+            )
+          )
+        ) {
+          item.index = num;
+          if ((index > 0 && index < arr.length - 1) && num >= 1) {
+            if (item.txhash != arr[index + 1].txhash) {
+              num = 0
+            } else {
+              num += 1;
+            }
+          } else {
+            num += 1;
+          }
+        } else {
+          num = 0;
+        }
+      });
       if (data.result.length < 10) {
-        context.commit('setTxLastPage', false)
+        context.commit('setTxLastPage', false);
       } else {
-        context.commit('setTxLastPage', true)
+        context.commit('setTxLastPage', true);
       }
     },
     // 首页交易总量
@@ -440,11 +536,103 @@ export default {
     async fetchGridDetail(context, params) {
       const {
         data
-      } = await $ajax.get(`/grid999/grid/detail/${params.dappId}/${params.gridId}`)
+      } = await $ajax.get(`/grid999/grid/detail/${params.dappId}/${params.gridId}`);
       if (isEmpty(data)) {
         return Promise.reject();
       }
       return Promise.resolve(data);
+    },
+    async fetchHoldersList(context, params) {
+      context.commit('setLoad', true);
+      let url;
+      if (params.id == '') {
+        url = `/auth/holders/${params.denom}?start_id=all&limit=20`;
+      } else {
+        url = `/auth/holders/${params.denom}?start_id=${params.id}&limit=20`;
+      }
+      const {
+        data
+      } = await $ajax.get(url);
+
+      context.commit('setLoad', false);
+
+      if (isEmpty(data)) {
+        throw new Error();
+      }
+      let result = [];
+      data.result.forEach(i => {
+        result.push({
+          id: i.split(':')[0],
+          address: i.split(':')[1]
+        });
+      });
+      context.commit('setHoldersList', result);
+      if (data.result.length < 20) {
+        context.commit('setHoldersLastPage', false);
+      } else if (data.result.length >= 20 && parseInt(data.result[data.result.length - 1].split(':')[0]) == 0) {
+        context.commit('setHoldersLastPage', false);
+      } else {
+        context.commit('setHoldersLastPage', true);
+      }
+    },
+    async fetchAddressDelegators(context, address) {
+      const {
+        data
+      } = await $ajax.get(`/staking/delegators/${address}/delegations`);
+      if (isEmpty(data)) {
+        throw new Error();
+      }
+      data.result.sort((a, b) => {
+        return b.balance - a.balance
+      })
+      context.commit('setAddressDelegators', data.result)
+      let balance = 0,
+        shares = 0;
+      data.result.forEach(i => {
+        balance += parseFloat(i.balance)
+        shares += parseFloat(i.shares)
+      })
+      context.commit('setAddressDelegationsBalance', balance)
+      context.commit('setAddressDelegationsShares', shares)
+    },
+    async fetchAddressUnbonding(context, address) {
+      const {
+        data
+      } = await $ajax.get(`/staking/delegators/${address}/unbonding_delegations`);
+      if (isEmpty(data)) {
+        throw new Error();
+      }
+      let result = []
+      data.result.forEach(i => {
+        i.entries.forEach(m => {
+          result.push({
+            entries: m,
+            delegator_address: i.delegator_address,
+            validator_address: i.validator_address,
+          })
+        })
+      })
+      context.commit('setAddressUnbonding', data.result)
+    },
+    async fetchAddressRedelegations(context, address) {
+      const {
+        data
+      } = await $ajax.get(`/staking/redelegations?delegator=${address}`);
+      if (isEmpty(data)) {
+        throw new Error();
+      }
+      let result = []
+      data.result.forEach(i => {
+        i.entries.forEach(m => {
+          result.push({
+            entries: m,
+            delegator_address: i.delegator_address,
+            validator_dst_address: i.validator_dst_address,
+            validator_src_address: i.validator_src_address
+          })
+        })
+      })
+      context.commit('setAddressRedelegations', result)
     }
-  },
+  }
 };

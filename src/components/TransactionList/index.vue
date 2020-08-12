@@ -10,6 +10,7 @@
       v-for="item in fields"
       :key="item.name"
       :label="item.name_zh"
+      :width="item.width"
     >
       <template slot-scope="scope">
         <hg-link
@@ -31,10 +32,25 @@
             v-else-if="item.name === 'Rewards'"
             :list="rewardList(scope.row, item.field)"
           />
-          <data-amount
-            v-else-if="item.name === 'Amount'"
-            :list="get(scope.row, item.field)"
-          />
+          <span v-else-if="item.name === 'Amount'">
+            <data-amount
+              v-if="action(scope.row) == 'send' || action(scope.row) == 'erc20-migrate'"
+              :list="get(scope.row, 'tx.value.msg.0.value.amount')"
+            />
+            <data-amount
+              v-else-if="action(scope.row) == 'delegate' || action(scope.row) == 'begin_redelegate' || action(scope.row) == 'begin_unbonding'"
+              :list="[get(scope.row, 'tx.value.msg.0.value.amount')]"
+            />
+            <data-amount
+              v-else-if="action(scope.row) == 'withdraw_delegator_reward'"
+              :list="withdrawRewardList(scope.row)"
+            />
+            <data-amount
+              v-else-if="action(scope.row) == 'grid999_dapp_withdraw'"
+              :list="gridWithdrawRewards(scope.row)"
+            />
+            <span v-else>-</span>
+          </span>
           <span v-else-if="item.name.match('Time')">
             {{ get(scope.row, item.field) | formatTime }}
           </span>
@@ -61,7 +77,7 @@
 </template>
 
 <script>
-import { isEmpty, get, find } from "lodash";
+import { isEmpty, get, find, findLast } from "lodash";
 
 export default {
   props: {
@@ -97,6 +113,33 @@ export default {
 
         return action.value;
       };
+    },
+    gridWithdrawRewards() {
+      return function(detail) {
+        const eventsMessage = get(detail, "events", []).filter(
+          item => item.type === "grid_withdraw"
+        );
+        const action =
+          find(get(eventsMessage[0], "attributes"), {
+            key: "rewards"
+          }) || {};
+        if (!isEmpty(action)) {
+          if (action.value) {
+            const list = action.value.split(",");
+            const result = [];
+            list.forEach(i => {
+              const denom = i.replace(/[^a-z]/gi, "");
+              const amount = i.replace(/[^0-9]/gi, "");
+              result.push({ denom, amount });
+            });
+            return result;
+          } else {
+            return [];
+          }
+        } else {
+          return [];
+        }
+      };
     }
   },
   methods: {
@@ -107,6 +150,43 @@ export default {
       return !isEmpty(val)
         ? [{ denom: "ugard", amount: val.replace(/[^0-9]/gi, "") }]
         : [];
+    },
+    withdrawRewardList(detail) {
+      const eventsMessage = get(detail, "events", []).filter(
+        item => item.type === "withdraw_rewards"
+      );
+      let list;
+      if (detail.index >= 0) {
+        const reward = get(eventsMessage[0], "attributes", []).filter(
+          i => i.key == "amount"
+        );
+        if (isEmpty(reward)) {
+          return [
+            { denom: "ugard", amount: 0 },
+            { denom: "uggt", amount: 0 }
+          ];
+        }
+        list = reward[detail.index].value.split(",");
+      } else {
+        const reward =
+          find(get(eventsMessage[0], "attributes"), {
+            key: "amount"
+          }) || {};
+        if (isEmpty(reward)) {
+          return [
+            { denom: "ugard", amount: 0 },
+            { denom: "uggt", amount: 0 }
+          ];
+        }
+        list = reward.value.split(",");
+      }
+      const result = [];
+      list.forEach(i => {
+        const denom = i.replace(/[^a-z]/gi, "");
+        const amount = i.replace(/[^0-9]/gi, "");
+        result.push({ denom, amount });
+      });
+      return result;
     },
     goDetail(hash) {
       const routeData = this.$router.resolve({ path: `/tx/${hash}` });
