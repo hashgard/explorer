@@ -4,13 +4,8 @@ import Big from 'big.js';
 
 export const upper = s => s.toUpperCase();
 
-export const formatTime = (time) => {
-  if (time?.length === 10) {
-    return moment.unix(time).format('YYYY-MM-DD HH:mm:ss');
-  }
-
-  return moment(time).format('YYYY-MM-DD HH:mm:ss');
-};
+export const formatTime = time =>
+  time && time.match(/\d{10}/) ? moment.unix(time).format('YYYY-MM-DD HH:mm:ss') : moment(time).format('YYYY-MM-DD HH:mm:ss');
 
 export const formatAGARD = (agard) => {
   const n = Big(agard).div(10 ** 18);

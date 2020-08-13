@@ -2582,7 +2582,7 @@ export default {
         item => item.type === "message"
       );
       const action =
-        findLast(get(eventsMessage[0], "attributes"), {
+        find(get(eventsMessage[0], "attributes"), {
           key: "action"
         }) || {};
 
