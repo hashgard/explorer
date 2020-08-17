@@ -560,12 +560,29 @@ export default {
         throw new Error();
       }
       let result = [];
-      data.result.forEach(i => {
+      await data.result.reduce(async (memo, i) => {
+        await memo;
+        const address = i.split(':')[1]
+        const balance = i.split(':')[0]
+        let delegations = 0;
+        if (params.denom == 'ugard') {
+          const {
+            data
+          } = await $ajax.get(`/staking/delegators/${address}/delegations`);
+          if (isEmpty(data)) {
+            throw new Error();
+          }
+          data.result.forEach(m => {
+            delegations += parseFloat(m.balance)
+          })
+        }
         result.push({
-          id: i.split(':')[0],
-          address: i.split(':')[1]
+          balance,
+          address,
+          delegations,
+          total: parseInt(balance) + delegations
         });
-      });
+      }, undefined)
       context.commit('setHoldersList', result);
       if (data.result.length < 20) {
         context.commit('setHoldersLastPage', false);

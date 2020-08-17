@@ -24,15 +24,29 @@
       style="width: 100%"
       :empty-text="$t('global.noneData')"
     >
-      <el-table-column
+      <!-- <el-table-column
         label="Index"
         type="index"
         width="100"
       >
-      </el-table-column>
+      </el-table-column> -->
       <el-table-column label="Balance">
         <template slot-scope="scope">
-          <data-amount :list="amount(scope.row.id)" />
+          <data-amount :list="amount(scope.row.balance)" />
+        </template>
+      </el-table-column>
+      <el-table-column label="Delegations">
+        <template slot-scope="scope">
+          <span v-if="scope.row.delegations == 0">-</span>
+          <data-amount
+            v-else
+            :list="delegations(scope.row.delegations)"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column label="Total">
+        <template slot-scope="scope">
+          <data-amount :list="total(scope.row.total)" />
         </template>
       </el-table-column>
       <el-table-column label="Address">
@@ -67,6 +81,16 @@ export default {
       return function(val) {
         return [{ denom: this.selected_key, amount: parseInt(val) }];
       };
+    },
+    delegations() {
+      return function(val) {
+        return [{ denom: "ugard", amount: val }];
+      };
+    },
+    total() {
+      return function(val) {
+        return [{ denom: this.selected_key, amount: val }];
+      };
     }
   },
   methods: {
@@ -82,7 +106,7 @@ export default {
     loadMore() {
       const params = {
         denom: this.selected_key,
-        id: this.holdersList[this.holdersList.length - 1].id
+        id: this.holdersList[this.holdersList.length - 1].balance
       };
       this.$store.dispatch("transactions/fetchHoldersList", params);
     }
