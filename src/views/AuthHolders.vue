@@ -35,7 +35,10 @@
           <data-amount :list="amount(scope.row.balance)" />
         </template>
       </el-table-column>
-      <el-table-column label="Delegations">
+      <el-table-column
+        label="Delegations"
+        v-if="selected_key == 'ugard'"
+      >
         <template slot-scope="scope">
           <span v-if="scope.row.delegations == 0">-</span>
           <data-amount
@@ -44,7 +47,10 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="Total">
+      <el-table-column
+        label="Total"
+        v-if="selected_key == 'ugard'"
+      >
         <template slot-scope="scope">
           <data-amount :list="total(scope.row.total)" />
         </template>
