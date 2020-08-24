@@ -81,8 +81,8 @@
               {{ description }}
             </span>
             <span v-else-if="item.name.match('Time')">
-              <span v-if="action === 'begin_unbonding'">{{ completionTime | formatTime }}</span>
-              <span v-else-if="action === 'begin_redelegate'">{{
+              <span v-if="action === 'begin_unbonding' && item.name == 'End Time'">{{ completionTime | formatTime }}</span>
+              <span v-else-if="action === 'begin_redelegate' && item.name == 'End Time'">{{
                 RedelegateCompletionTime | formatTime
               }}</span>
               <span v-else>{{ get(detail, item.field) | formatTime }}</span>
