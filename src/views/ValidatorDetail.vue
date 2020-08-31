@@ -350,7 +350,7 @@ export default {
         data: { result }
       } = await ajax.get(`staking/validator/blocks/${address}/${startId}/20`);
 
-      this.total = +result.total;
+      this.total = parseInt(result.total) - 1;
       this.list = result.blocks;
     },
     onPageChange(page) {
