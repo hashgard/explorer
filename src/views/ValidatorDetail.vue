@@ -192,7 +192,7 @@
           </card>
         </el-col>
       </el-row>
-      <card title="redelegations From">
+      <card title="redelegations to">
         <el-table
           class="table"
           :data="redelegations"
@@ -251,7 +251,7 @@
           />
         </div>
       </card>
-      <card title="redelegations To">
+      <card title="redelegations from">
         <el-table
           class="table"
           :data="redelegationsTo"
