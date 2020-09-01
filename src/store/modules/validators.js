@@ -14,6 +14,7 @@ export default {
     details: {},
     delegationsTotal: 0,
     redelegationsTotal: 0,
+    redelegationsToTotal: 0,
     unbondingDelegationsTotal: 0,
     rewards: {}
   },
@@ -40,6 +41,9 @@ export default {
     },
     setRedelegationsTotal(state, data) {
       state.redelegationsTotal = data
+    },
+    setRedelegationsToTotal(state, data) {
+      state.redelegationsToTotal = data
     },
     setRewards(state, data) {
       state.rewards = data
@@ -172,6 +176,34 @@ export default {
         return b.entries.balance - a.entries.balance
       })
       context.commit("setRedelegationsTotal", result ? result.length : 0)
+      return Promise.resolve(result ? result.slice((params.page - 1) * 5, (params.page -
+        1) * 5 + 5) : [])
+    },
+    async fetchRedelegationsTo(context, params) {
+      const {
+        data
+      } = await $ajax.get(`/staking/redelegations?validator_to=${params.address}`)
+      if (isEmpty(data)) {
+        return Promise.reject()
+      }
+      let result = []
+      if (!isEmpty(data.result)) {
+        data.result.forEach(i => {
+          i.entries.forEach(m => {
+            result.push({
+              entries: m,
+              delegator_address: i.delegator_address,
+              validator_dst_address: i.validator_dst_address,
+              validator_src_address: i.validator_src_address
+            })
+          })
+        })
+      }
+
+      result.sort((a, b) => {
+        return b.entries.balance - a.entries.balance
+      })
+      context.commit("setRedelegationsToTotal", result ? result.length : 0)
       return Promise.resolve(result ? result.slice((params.page - 1) * 5, (params.page -
         1) * 5 + 5) : [])
     },

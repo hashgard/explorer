@@ -192,7 +192,7 @@
           </card>
         </el-col>
       </el-row>
-      <card title="redelegations">
+      <card title="redelegations From">
         <el-table
           class="table"
           :data="redelegations"
@@ -248,6 +248,65 @@
             @prev-click="onPageChangeRedelegations"
             @next-click="onPageChangeRedelegations"
             @current-change="onPageChangeRedelegations"
+          />
+        </div>
+      </card>
+      <card title="redelegations To">
+        <el-table
+          class="table"
+          :data="redelegationsTo"
+          style="width: 100%"
+          :empty-text="$t('global.noneData')"
+        >
+          <el-table-column label="Amount">
+            <template slot-scope="scope">
+              <span>{{ scope.row.entries.balance | formatShares }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="Completion Time">
+            <template slot-scope="scope">
+              <span>{{scope.row.entries.completion_time | formatTime}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="Creation Height">
+            <template slot-scope="scope">
+              <hg-link
+                type="block"
+                :ellipsis="false"
+                :content="scope.row.entries.creation_height.toString()"
+              ></hg-link>
+            </template>
+          </el-table-column>
+          <el-table-column label="Validator From">
+            <template slot-scope="scope">
+              <hg-link
+                type="validator"
+                :ellipsis="false"
+                :content="scope.row.validator_src_address"
+              ></hg-link>
+            </template>
+          </el-table-column>
+          <el-table-column label="Validator To">
+            <template slot-scope="scope">
+              <hg-link
+                type="validator"
+                :ellipsis="false"
+                :content="scope.row.validator_dst_address"
+              ></hg-link>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div class="card-footer">
+          <el-pagination
+            background
+            :pager-count="5"
+            layout="prev, pager, next"
+            :current-page="currentPageRedelegationsTo"
+            :page-size="5"
+            :total="redelegationsToTotal"
+            @prev-click="onPageChangeRedelegationsTo"
+            @next-click="onPageChangeRedelegationsTo"
+            @current-change="onPageChangeRedelegationsTo"
           />
         </div>
       </card>
@@ -326,6 +385,7 @@ export default {
       currentPage: 1,
       currentPageDelegations: 1,
       currentPageRedelegations: 1,
+      currentPageRedelegationsTo: 1,
       currentPageUnDelegations: 1,
       list: [],
       timer: null,
@@ -333,6 +393,7 @@ export default {
       distribution: {},
       delegations: [],
       redelegations: [],
+      redelegationsTo: [],
       unbondingDelegations: [],
       pool: {},
       withDrawAddress: ""
@@ -377,6 +438,16 @@ export default {
         }
       );
     },
+    async onPageChangeRedelegationsTo(page) {
+      this.currentPageRedelegationsTo = page;
+      this.redelegationsTo = await this.$store.dispatch(
+        "validators/fetchRedelegationsTo",
+        {
+          address: this.address,
+          page: this.currentPageRedelegationsTo
+        }
+      );
+    },
     async onPageChangeUnDelegations(page) {
       this.currentPageUnDelegations = page;
       this.unbondingDelegations = await this.$store.dispatch(
@@ -393,6 +464,7 @@ export default {
       "details",
       "delegationsTotal",
       "redelegationsTotal",
+      "redelegationsToTotal",
       "unbondingDelegationsTotal"
     ]),
     detail() {
@@ -427,6 +499,13 @@ export default {
       {
         address: this.address,
         page: this.currentPageRedelegations
+      }
+    );
+    this.redelegationsTo = await this.$store.dispatch(
+      "validators/fetchRedelegationsTo",
+      {
+        address: this.address,
+        page: this.currentPageRedelegationsTo
       }
     );
     this.unbondingDelegations = await this.$store.dispatch(
