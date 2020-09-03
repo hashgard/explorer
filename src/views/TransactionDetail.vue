@@ -64,6 +64,18 @@
               v-else-if="item.name === 'Fee Amount'"
               :list="get(detail, item.field)"
             />
+            <data-amount
+              v-else-if="item.name === 'Initial Deposit'"
+              :list="get(detail, item.field)"
+            ></data-amount>
+            <div v-else-if="item.name === 'Parameter Adjustment' && !isEmpty(get(detail, item.field))">
+              <p
+                v-for="(i,index) in get(detail, item.field)"
+                :key="index"
+              >
+                {{i.subspace}}/{{i.key}} Adjusted To: {{i.value}}
+              </p>
+            </div>
             <div v-else-if="item.name === 'Withdraw Rewards'">
               <p
                 v-for="(i,index) in rewardList(detail)"
@@ -864,60 +876,60 @@ export default {
       // gov
       submit_proposal_governance: [
         ...txListFieldsMap.submit_proposal,
-        {
-          name: "Name",
-          name_zh: this.$t("record.name"),
-          field: "tx.value.msg.0.value.content.value.apply_info.name",
-          linkType: ""
-        },
-        {
-          name: "Owner",
-          name_zh: this.$t("record.owner"),
-          field: "tx.value.msg.0.value.content.value.apply_info.owner",
-          linkType: ""
-        },
-        {
-          name: "Voter",
-          name_zh: this.$t("record.voter"),
-          field: "tx.value.msg.0.value.content.value.apply_info.voter",
-          linkType: ""
-        },
-        {
-          name: "Supervisor",
-          name_zh: this.$t("record.supervisor"),
-          field: "tx.value.msg.0.value.content.value.apply_info.supervisor",
-          linkType: ""
-        },
-        {
-          name: "Validator",
-          name_zh: this.$t("record.validator"),
-          field: "tx.value.msg.0.value.content.value.apply_info.validator",
-          linkType: ""
-        },
-        {
-          name: "Votes",
-          name_zh: this.$t("record.votes"),
-          field: "tx.value.msg.0.value.content.value.apply_info.votes",
-          linkType: ""
-        },
-        {
-          name: "Logo url",
-          name_zh: this.$t("record.orgLogoUrl"),
-          field: "tx.value.msg.0.value.content.value.apply_info.logo_url",
-          linkType: ""
-        },
-        {
-          name: "Node Id",
-          name_zh: this.$t("editOrg.nodeId"),
-          field: "tx.value.msg.0.value.content.value.apply_info.node_id",
-          linkType: ""
-        },
-        {
-          name: "Node Ip",
-          name_zh: this.$t("editOrg.nodeIp"),
-          field: "tx.value.msg.0.value.content.value.apply_info.node_ip",
-          linkType: ""
-        },
+        // {
+        //   name: "Name",
+        //   name_zh: this.$t("record.name"),
+        //   field: "tx.value.msg.0.value.content.value.apply_info.name",
+        //   linkType: ""
+        // },
+        // {
+        //   name: "Owner",
+        //   name_zh: this.$t("record.owner"),
+        //   field: "tx.value.msg.0.value.content.value.apply_info.owner",
+        //   linkType: ""
+        // },
+        // {
+        //   name: "Voter",
+        //   name_zh: this.$t("record.voter"),
+        //   field: "tx.value.msg.0.value.content.value.apply_info.voter",
+        //   linkType: ""
+        // },
+        // {
+        //   name: "Supervisor",
+        //   name_zh: this.$t("record.supervisor"),
+        //   field: "tx.value.msg.0.value.content.value.apply_info.supervisor",
+        //   linkType: ""
+        // },
+        // {
+        //   name: "Validator",
+        //   name_zh: this.$t("record.validator"),
+        //   field: "tx.value.msg.0.value.content.value.apply_info.validator",
+        //   linkType: ""
+        // },
+        // {
+        //   name: "Votes",
+        //   name_zh: this.$t("record.votes"),
+        //   field: "tx.value.msg.0.value.content.value.apply_info.votes",
+        //   linkType: ""
+        // },
+        // {
+        //   name: "Logo url",
+        //   name_zh: this.$t("record.orgLogoUrl"),
+        //   field: "tx.value.msg.0.value.content.value.apply_info.logo_url",
+        //   linkType: ""
+        // },
+        // {
+        //   name: "Node Id",
+        //   name_zh: this.$t("editOrg.nodeId"),
+        //   field: "tx.value.msg.0.value.content.value.apply_info.node_id",
+        //   linkType: ""
+        // },
+        // {
+        //   name: "Node Ip",
+        //   name_zh: this.$t("editOrg.nodeIp"),
+        //   field: "tx.value.msg.0.value.content.value.apply_info.node_ip",
+        //   linkType: ""
+        // },
         {
           name: "Apply Description",
           name_zh: this.$t("proposals.description"),
@@ -925,11 +937,23 @@ export default {
           linkType: ""
         },
         {
-          name: "OrgDescription",
-          name_zh: this.$t("record.orgDescription"),
-          field: "tx.value.msg.0.value.content.value.apply_info.description",
+          name: "Initial Deposit",
+          name_zh: "Initial Deposit",
+          field: "tx.value.msg.0.value.initial_deposit",
+          linkType: ""
+        },
+        {
+          name: "Parameter Adjustment",
+          name_zh: "Parameter Adjustment",
+          field: "tx.value.msg.0.value.content.value.changes",
           linkType: ""
         }
+        // {
+        //   name: "OrgDescription",
+        //   name_zh: this.$t("record.orgDescription"),
+        //   field: "tx.value.msg.0.value.content.value.apply_info.description",
+        //   linkType: ""
+        // }
       ],
       deposit_governance: [...txListFieldsMap.deposit],
       vote_governance: [...txListFieldsMap.vote],

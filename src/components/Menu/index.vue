@@ -78,10 +78,10 @@ export const menu = [
         name: "txCate.migrate",
         link: "/txs?module=migrate"
       },
-      // {
-      //   name: "txCate.governance",
-      //   link: "/txs/governance"
-      // },
+      {
+        name: "txCate.governance",
+        link: "/txs/?module=gov"
+      },
       {
         name: "txCate.staking",
         link: "/txs?module=staking"
