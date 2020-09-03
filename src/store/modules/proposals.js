@@ -1,4 +1,6 @@
-import { isEmpty } from 'lodash';
+import {
+  isEmpty
+} from 'lodash';
 import $ajax from '@/utils/ajax';
 
 export default {
@@ -7,6 +9,7 @@ export default {
     list: [],
     details: {},
     load: false,
+    voteList: []
   },
   mutations: {
     setList(state, list) {
@@ -18,12 +21,17 @@ export default {
     setLoad(state, load) {
       state.load = load;
     },
+    setVoteList(state, data) {
+      state.voteList = data
+    }
   },
   actions: {
     async fetchList(context) {
       context.commit('setLoad', true);
 
-      const { data } = await $ajax.get('/gov/proposals');
+      const {
+        data
+      } = await $ajax.get('/gov/proposals');
 
       context.commit('setLoad', false);
       context.commit('setList', data);
@@ -46,7 +54,9 @@ export default {
 
       context.commit('setLoad', true);
 
-      const { data } = await $ajax.get(`/gov/proposals/${id}`);
+      const {
+        data
+      } = await $ajax.get(`/gov/proposals/${id}`);
 
       context.commit('setLoad', false);
 
@@ -54,9 +64,23 @@ export default {
         throw new Error();
       }
 
-      context.commit('setDetails', { [id]: data });
+      context.commit('setDetails', {
+        [id]: data
+      });
 
       return data;
     },
+    async fetchVoteList(context, id) {
+      const {
+        data
+      } = await $ajax.get(`/gov/proposals/${id}/votes`);
+
+
+      if (isEmpty(data)) {
+        throw new Error();
+      }
+
+      context.commit('setVoteList', data.result);
+    }
   },
 };

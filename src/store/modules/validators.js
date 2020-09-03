@@ -16,7 +16,8 @@ export default {
     redelegationsTotal: 0,
     redelegationsToTotal: 0,
     unbondingDelegationsTotal: 0,
-    rewards: {}
+    rewards: {},
+    validators: []
   },
 
   getters: {
@@ -47,6 +48,9 @@ export default {
     },
     setRewards(state, data) {
       state.rewards = data
+    },
+    setValidators(state, data) {
+      state.validators = data
     }
   },
 
@@ -91,6 +95,38 @@ export default {
       context.commit('setDetail', {
         [address]: data,
       });
+    },
+    // 查询所有状态验证人
+    fetchValidators: async function (context) {
+      const {
+        data
+      } = await $ajax.get('/staking/validators?status=bonded');
+      const {
+        data: unbondedData
+      } = await $ajax.get('/staking/validators?status=unbonded');
+      const {
+        data: unbondingData
+      } = await $ajax.get('/staking/validators?status=unbonding');
+      if (isEmpty(data) || isEmpty(unbondedData) || isEmpty(unbondingData)) {
+        return Promise.reject();
+      }
+      const result = [...data.result, ...unbondedData.result, ...unbondingData.result]
+      let validators = []
+      await result.reduce(async (memo, i, index) => {
+        await memo;
+        const owner = await context.dispatch("fetchDistribution", i.operator_address)
+        validators.push({
+          name: i.description.moniker,
+          owner: owner.operator_address,
+          address: i.operator_address
+        })
+
+      }, undefined)
+
+      context.commit(
+        'setValidators',
+        validators
+      );
     },
     async fetchDistribution(context, address) {
       const {
