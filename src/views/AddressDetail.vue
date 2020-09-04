@@ -177,16 +177,46 @@
         </el-table>
       </card>
       <card title="Transaction List">
+        <el-tabs
+          v-model="activeName"
+          @tab-click="handleClick"
+        >
+          <el-tab-pane
+            label="TRANSACTION"
+            name="transaction"
+          ></el-tab-pane>
+          <el-tab-pane
+            label="SEND"
+            name="send"
+          ></el-tab-pane>
+          <el-tab-pane
+            label="RECIPIENT"
+            name="recipient"
+          ></el-tab-pane>
+        </el-tabs>
         <transaction-list
           :fields="fields"
           :load="load"
           :list="transactionList"
         />
-        <p
+        <!-- <p
           v-if="txLastPage"
           class="load-more"
           @click="loadMore"
-        >{{ $t("global.loadMore") }}</p>
+        >{{ $t("global.loadMore") }}</p> -->
+        <div class="card-footer">
+          <el-pagination
+            background
+            :current-page="currentPage"
+            :pager-count="5"
+            layout="prev, pager, next"
+            :page-size="10"
+            :total="addressTxTotal"
+            @prev-click="onPageChangeAddressTx"
+            @next-click="onPageChangeAddressTx"
+            @current-change="onPageChangeAddressTx"
+          />
+        </div>
       </card>
     </div>
   </div>
@@ -200,33 +230,81 @@ import { txListFieldsMap } from "@/constants";
 
 export default {
   data() {
-    return { txListFieldsMap, withdrawAddress: "" };
+    return {
+      txListFieldsMap,
+      withdrawAddress: "",
+      activeName: "transaction",
+      currentPage: 1
+    };
   },
   methods: {
     get,
     isEmpty,
-    loadMore() {
-      const params = {
-        address: this.address,
-        id:
-          parseInt(this.transactionList[this.transactionList.length - 1].id) - 1
-      };
-      this.$store.dispatch("transactions/fetchAddressTxList", params);
+    // loadMore() {
+    //   const params = {
+    //     address: this.address,
+    //     id:
+    //       parseInt(this.transactionList[this.transactionList.length - 1].id) - 1
+    //   };
+    //   this.$store.dispatch("transactions/fetchAddressTxList", params);
+    // },
+    handleClick(tab) {
+      this.currentPage = 1;
+      if (tab.name == "transaction") {
+        this.$store.dispatch("transactions/fetchAddressTxList", {
+          address: this.address,
+          id: ""
+        });
+      }
+      if (tab.name == "send") {
+        this.$store.dispatch("transactions/fetchAddressSend", {
+          address: this.address,
+          page: 1
+        });
+      }
+      if (tab.name == "recipient") {
+        this.$store.dispatch("transactions/fetchAddressRecipient", {
+          address: this.address,
+          page: 1
+        });
+      }
+    },
+    onPageChangeAddressTx(page) {
+      this.currentPage = page;
+      if (this.activeName == "transaction") {
+        const params = {
+          address: this.address,
+          id: this.addressTxTotal - (page - 1) * 10
+        };
+        this.$store.dispatch("transactions/fetchAddressTxList", params);
+      }
+      if (this.activeName == "send") {
+        this.$store.dispatch("transactions/fetchAddressSend", {
+          address: this.address,
+          page
+        });
+      }
+      if (this.activeName == "recipient") {
+        this.$store.dispatch("transactions/fetchAddressRecipient", {
+          address: this.address,
+          page
+        });
+      }
     }
   },
-
   computed: {
     ...mapState("address", ["info"]),
     ...mapState("validators", ["rewards"]),
     ...mapState("transactions", {
-      transactionList: "list",
+      transactionList: "addressTxList",
       load: "load",
       txLastPage: "txLastPage",
       addressDelegators: "addressDelegators",
       addressDelegationsShares: "addressDelegationsShares",
       addressDelegationsBalance: "addressDelegationsBalance",
       addressRedelegations: "addressRedelegations",
-      addressUnbonding: "addressUnbonding"
+      addressUnbonding: "addressUnbonding",
+      addressTxTotal: "addressTxTotal"
     }),
     address() {
       return this.$route.params.address;
@@ -263,7 +341,8 @@ export default {
           name_zh: "Amount",
           name: "Amount",
           field: "",
-          linkType: ""
+          linkType: "",
+          activeName: this.activeName
         },
         {
           name_zh: this.$t("tx.action"),

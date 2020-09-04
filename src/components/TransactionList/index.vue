@@ -38,8 +38,12 @@
               :list="get(scope.row, 'tx.value.msg.0.value.amount')"
             />
             <data-amount
-              v-else-if="action(scope.row) == 'delegate' || action(scope.row) == 'begin_redelegate' || action(scope.row) == 'begin_unbonding'"
+              v-else-if="(action(scope.row) == 'delegate' || action(scope.row) == 'begin_redelegate' || action(scope.row) == 'begin_unbonding') && ($route.name == 'transactions' || item.activeName == 'transaction')"
               :list="[get(scope.row, 'tx.value.msg.0.value.amount')]"
+            />
+            <data-amount
+              v-else-if="(action(scope.row) == 'delegate' || action(scope.row) == 'begin_redelegate' || action(scope.row) == 'begin_unbonding') && ($route.name == 'addressDetail' && item.activeName == 'recipient')"
+              :list="recipientRewards(scope.row)"
             />
             <span v-else-if="action(scope.row) == 'withdraw_delegator_reward'">
               <data-amount
@@ -89,6 +93,33 @@ export default {
     load: { type: Boolean, default: false }
   },
   computed: {
+    recipientRewards() {
+      return detail => {
+        const eventsMessage = get(detail, "events", []).filter(
+          item => item.type === "transfer"
+        );
+        const action =
+          find(get(eventsMessage[0], "attributes"), {
+            key: "amount"
+          }) || {};
+        if (!isEmpty(action)) {
+          if (action.value) {
+            const list = action.value.split(",");
+            const result = [];
+            list.forEach(i => {
+              const denom = i.replace(/[^a-z]/gi, "");
+              const amount = i.replace(/[^0-9]/gi, "");
+              result.push({ denom, amount });
+            });
+            return result;
+          } else {
+            return [];
+          }
+        } else {
+          return [];
+        }
+      };
+    },
     contractAddress() {
       return row => {
         const result = [];

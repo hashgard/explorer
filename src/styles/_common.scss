@@ -65,3 +65,7 @@ a:active {
   height: 52px;
   padding: 8px;
 }
+
+.el-tabs__item:focus.is-active.is-focus:not(:active) {
+  box-shadow: none;
+}

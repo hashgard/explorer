@@ -28,7 +28,9 @@ export default {
     txLastPage: true,
     holdersLastPage: true,
     addressDelegationsBalance: 0,
-    addressDelegationsShares: 0
+    addressDelegationsShares: 0,
+    addressTxTotal: 0,
+    addressTxList: []
   },
   getters: {
     lastList: state => state.lastList.slice(0, 5),
@@ -109,6 +111,12 @@ export default {
     },
     setAddressUnbonding(state, data) {
       state.addressUnbonding = data
+    },
+    setAddressTxTotal(state, data) {
+      state.addressTxTotal = parseInt(data)
+    },
+    setAddressTxList(state, data) {
+      state.addressTxList = data
     }
   },
   actions: {
@@ -462,12 +470,20 @@ export default {
       if (isEmpty(data)) {
         throw new Error();
       }
+      if (params.id == '') {
+        if (data.result.length > 0) {
+          context.commit('setAddressTxTotal', data.result[0].id)
+        } else {
+          context.commit('setAddressTxTotal', 0)
+        }
+      }
+
       let result = [];
       data.result.forEach(i => {
         i.tx.id = i.id;
         result.push(i.tx);
       });
-      context.commit('setList', result);
+      context.commit('setAddressTxList', result);
       let num = 0;
       context.state.list.forEach((item, index, arr) => {
         const eventsMessage = get(item, 'events', []).filter(i => i.type === 'message');
@@ -507,6 +523,38 @@ export default {
       } else {
         context.commit('setTxLastPage', true);
       }
+    },
+    // 账户流出
+    async fetchAddressSend(context, {
+      address,
+      page
+    }) {
+      context.commit('setLoad', true);
+      const {
+        data
+      } = await $ajax.get(`/txs?message.action=send&message.sender=${address}&page=${page}&limit=10`);
+      context.commit('setLoad', false);
+      if (isEmpty(data)) {
+        throw new Error();
+      }
+      context.commit('setAddressTxTotal', data.total_count)
+      context.commit('setAddressTxList', data.txs);
+    },
+    // 账户流入
+    async fetchAddressRecipient(context, {
+      address,
+      page
+    }) {
+      context.commit('setLoad', true);
+      const {
+        data
+      } = await $ajax.get(`/txs?transfer.recipient=${address}&page=${page}&limit=10`);
+      context.commit('setLoad', false);
+      if (isEmpty(data)) {
+        throw new Error();
+      }
+      context.commit('setAddressTxTotal', data.total_count)
+      context.commit('setAddressTxList', data.txs);
     },
     // 首页交易总量
     async fetchTx(context) {
