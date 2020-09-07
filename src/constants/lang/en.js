@@ -50,7 +50,7 @@ const en = {
     currentStatus: 'CURRENT STATUS',
     website: 'Website',
     identity: 'Identity',
-    comissionRate: 'Comission Rate',
+    comissionRate: 'Commission Rate',
     jailed: 'Jailed',
     totalBlocks: 'Total Blocks',
   },

@@ -1,6 +1,12 @@
 <template>
-  <el-table :data="list" :empty-text="$t('global.noneData')">
-    <el-table-column class="jailed-status" :label="$t('validator.active')">
+  <el-table
+    :data="list"
+    :empty-text="$t('global.noneData')"
+  >
+    <el-table-column
+      class="jailed-status"
+      :label="$t('validator.active')"
+    >
       <template slot-scope="record">
         <span :class="record.row.jailed ? 'jailed' : 'active'">{{
           record.row.jailed ? "FALSE" : "TRUE"
@@ -13,11 +19,22 @@
       prop="operator_address"
     >
       <template slot-scope="record">
-        <hg-link type="validator" :content="record.row.operator_address" />
+        <hg-link
+          type="validator"
+          :content="record.row.operator_address"
+        />
       </template>
     </el-table-column>
-    <el-table-column class="name" :label="$t('validator.name')" prop="description.moniker" />
-    <el-table-column class="voting-power" :label="$t('validator.votingPower')" prop="tokens">
+    <el-table-column
+      class="name"
+      :label="$t('validator.name')"
+      prop="description.moniker"
+    />
+    <el-table-column
+      class="voting-power"
+      :label="$t('validator.votingPower')"
+      prop="tokens"
+    >
       <!-- <template slot-scope="record">
         {{ record.row.delegator_shares | formatShares }}
       </template> -->
@@ -25,7 +42,16 @@
         {{ percent(record.row.delegator_shares) }}
       </template>
     </el-table-column>
-    <el-table-column :label="$t('validator.ranking')" prop="number" />
+    <el-table-column label="Commission">
+      <template slot-scope="record">
+        {{ (Number(get(record.row, "commission.commission_rates.rate")) * 100).toFixed(2) }} %
+      </template>
+    </el-table-column>
+    <el-table-column
+      :label="$t('validator.ranking')"
+      prop="number"
+    />
+
     <el-table-column
       class="bond-height"
       :label="$t('validator.unBondingHeight')"
@@ -35,6 +61,7 @@
 </template>
 
 <script>
+import { get } from "lodash";
 export default {
   props: {
     list: {
@@ -54,10 +81,14 @@ export default {
   computed: {
     percent() {
       return function(val) {
-        const result = (parseFloat(val) / parseFloat(this.pool.bonded_tokens)) * 100;
+        const result =
+          (parseFloat(val) / parseFloat(this.pool.bonded_tokens)) * 100;
         return `${result.toFixed(2)}%`;
       };
     }
+  },
+  methods: {
+    get
   },
   async mounted() {
     this.pool = await this.$store.dispatch("validators/fetchStakingPool");

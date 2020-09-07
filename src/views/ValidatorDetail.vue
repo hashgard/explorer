@@ -31,7 +31,7 @@
           <span>{{ detail.description.moniker }}</span>
         </data-item>
         <data-item :label="$t('validator.comissionRate')">
-          <span>{{ Number(get(detail, "commission.commission_rates.rate")) * 100 }} %</span>
+          <span>{{ (Number(get(detail, "commission.commission_rates.rate")) * 100).toFixed(2) }} %</span>
         </data-item>
         <data-item :label="$t('validator.website')">
           <span>{{ detail.description.website || "-" }}</span>
