@@ -40,13 +40,32 @@
         >
           <span>{{ isEmpty(value) ? '-' : value }}</span>
         </data-item>
-      </card>
-      <card title="Parameter adjustment">
-        <div
-          class="changes"
-          v-if="get(detail, 'content.value.changes')"
+        <data-item
+          label="Denom"
+          v-if="contentType(detail.content.type) == 'StakeIssueLockedSpendProposal'"
+        ><span>{{handleDenom(get(detail,"content.value.denom"))}}</span></data-item>
+        <data-item
+          label="Amount"
+          v-if="contentType(detail.content.type) == 'StakeIssueLockedSpendProposal'"
+        ><span>
+            <data-amount :list="get(detail,'content.value.amount')"></data-amount>
+          </span></data-item>
+        <data-item
+          label="recipient"
+          v-if="contentType(detail.content.type) == 'StakeIssueLockedSpendProposal'"
         >
-
+          <hg-link
+            type="address"
+            :content="get(detail,'content.value.recipient')"
+            :ellipsis="false"
+          />
+        </data-item>
+      </card>
+      <card
+        title="Parameter adjustment"
+        v-if="get(detail, 'content.value.changes')"
+      >
+        <div class="changes">
           <div
             v-for="(item, index) in get(detail, 'content.value.changes')"
             :key="index"
@@ -144,6 +163,11 @@ export default {
   computed: {
     ...mapState("proposals", ["details", "voteList"]),
     ...mapState("validators", ["validators"]),
+    handleDenom() {
+      return function(val) {
+        return val.slice(1).toUpperCase();
+      };
+    },
     isValidator() {
       return function(address) {
         const result = this.validators.filter(i => {
@@ -222,7 +246,7 @@ export default {
 
   text-align: center;
   & > div {
-    flex-basis: 120px;
+    flex-basis: 150px;
     span {
       font-size: 24px;
     }
