@@ -485,7 +485,7 @@ export default {
       });
       context.commit('setAddressTxList', result);
       let num = 0;
-      context.state.list.forEach((item, index, arr) => {
+      context.state.addressTxList.forEach((item, index, arr) => {
         const eventsMessage = get(item, 'events', []).filter(i => i.type === 'message');
         const action =
           find(get(eventsMessage[0], 'attributes'), {

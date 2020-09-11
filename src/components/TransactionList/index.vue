@@ -202,7 +202,11 @@ export default {
           ];
         }
         if (!isEmpty(reward[detail.index])) {
-          list = reward[detail.index].value.split(",");
+          if (reward[detail.index].value) {
+            list = reward[detail.index].value.split(",");
+          } else {
+            list = [];
+          }
         } else {
           list = [];
         }
@@ -217,7 +221,11 @@ export default {
             { denom: "uggt", amount: 0 }
           ];
         }
-        list = reward.value.split(",");
+        if (reward.value) {
+          list = reward.value.split(",");
+        } else {
+          list = [];
+        }
       }
       const result = [];
       list.forEach(i => {

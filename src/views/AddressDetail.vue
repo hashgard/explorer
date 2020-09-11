@@ -162,7 +162,11 @@
         >
           <el-table-column label="Rewards">
             <template slot-scope="scope">
-              <data-amount :list="scope.row.reward" />
+              <data-amount
+                v-if="scope.row.reward"
+                :list="scope.row.reward"
+              />
+              <span v-else>-</span>
             </template>
           </el-table-column>
           <el-table-column label="Validator Address">

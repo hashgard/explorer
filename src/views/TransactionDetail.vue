@@ -2244,7 +2244,7 @@ export default {
       let result = [];
       reward.forEach(m => {
         let children = [];
-        list = m.value.split(",");
+        list = m.value ? m.value.split(",") : [];
         list.forEach(i => {
           const denom = i.replace(/[^a-z]/gi, "");
           const amount = i.replace(/[^0-9]/gi, "");
