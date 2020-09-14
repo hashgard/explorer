@@ -524,38 +524,6 @@ export default {
         context.commit('setTxLastPage', true);
       }
     },
-    // 账户流出
-    async fetchAddressSend(context, {
-      address,
-      page
-    }) {
-      context.commit('setLoad', true);
-      const {
-        data
-      } = await $ajax.get(`/txs?message.action=send&message.sender=${address}&page=${page}&limit=10`);
-      context.commit('setLoad', false);
-      if (isEmpty(data)) {
-        throw new Error();
-      }
-      context.commit('setAddressTxTotal', data.total_count)
-      context.commit('setAddressTxList', data.txs);
-    },
-    // 账户流入
-    async fetchAddressRecipient(context, {
-      address,
-      page
-    }) {
-      context.commit('setLoad', true);
-      const {
-        data
-      } = await $ajax.get(`/txs?transfer.recipient=${address}&page=${page}&limit=10`);
-      context.commit('setLoad', false);
-      if (isEmpty(data)) {
-        throw new Error();
-      }
-      context.commit('setAddressTxTotal', data.total_count)
-      context.commit('setAddressTxList', data.txs);
-    },
     // 首页交易总量
     async fetchTx(context) {
       const {
