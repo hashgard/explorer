@@ -52,11 +52,11 @@
       prop="number"
     />
 
-    <el-table-column
+    <!-- <el-table-column
       class="bond-height"
       :label="$t('validator.unBondingHeight')"
       prop="unbonding_height"
-    />
+    /> -->
   </el-table>
 </template>
 
