@@ -380,7 +380,11 @@
           </el-table-column>
           <el-table-column label="Deposit Fee">
             <template slot-scope="scope">
-              <data-amount :list="handleAmount(scope.row.depositFee)" />
+              <data-amount
+                v-if="handleAmount(scope.row.depositFee).length != 0"
+                :list="handleAmount(scope.row.depositFee)"
+              />
+              <span v-else>-</span>
             </template>
           </el-table-column>
           <el-table-column label="Luck Deposit">
@@ -2423,6 +2427,9 @@ export default {
         if (action.value) {
           const denom = action.value.replace(/[^a-z]/gi, "");
           const amount = action.value.replace(/[^0-9]/gi, "");
+          if (amount == 0) {
+            return [];
+          }
           return [{ denom, amount }];
         } else {
           return [];
@@ -2443,6 +2450,9 @@ export default {
         if (action.value) {
           const denom = action.value.replace(/[^a-z]/gi, "");
           const amount = action.value.replace(/[^0-9]/gi, "");
+          if (amount == 0) {
+            return [];
+          }
           return [{ denom, amount }];
         } else {
           return [];
@@ -2526,9 +2536,18 @@ export default {
         }) || {};
       if (!isEmpty(action)) {
         if (action.value) {
-          const denom = action.value.replace(/[^a-z]/gi, "");
-          const amount = action.value.replace(/[^0-9]/gi, "");
-          return [{ denom, amount }];
+          const arr1 = action.value.split(",");
+          let result = [];
+          arr1.forEach(i => {
+            const denom = i.replace(/[^a-z]/gi, "");
+            const amount = i.replace(/[^0-9]/gi, "");
+            result.push({
+              denom,
+              amount
+            });
+          });
+
+          return result;
         } else {
           return [];
         }
@@ -2540,7 +2559,11 @@ export default {
       return function(val) {
         const denom = val.replace(/[^a-z]/gi, "");
         const amount = val.replace(/[^0-9]/gi, "");
-        return [{ denom, amount }];
+        if (amount == 0) {
+          return [];
+        } else {
+          return [{ denom, amount }];
+        }
       };
     },
     migrateRewardFrom() {
@@ -2927,11 +2950,16 @@ export default {
         const itemIndex = items.filter(i => {
           return i.index == get(this.detail, "tx.value.msg.0.value.index");
         });
-        const senderDeposit = itemIndex[0].deposits.filter(i => {
-          return (
-            i.split("_")[0] == get(this.detail, "tx.value.msg.0.value.sender")
-          );
-        });
+        let senderDeposit;
+        if (!isEmpty(itemIndex[0].deposits)) {
+          senderDeposit = itemIndex[0].deposits.filter(i => {
+            return (
+              i.split("_")[0] == get(this.detail, "tx.value.msg.0.value.sender")
+            );
+          });
+        } else {
+          senderDeposit = [];
+        }
         const senderDepositResult = [];
         senderDeposit.forEach(i => {
           const formatValue = i.split("_");

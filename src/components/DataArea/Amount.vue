@@ -39,24 +39,33 @@ export default {
             i.amount = numeral(n.toString()).format("0,0.[000000]");
           }
         } else if (i.denom === "ugard") {
-          const n = Big(i.amount).div(10 ** 6);
-
-          i.amount =
-            n >= 1
-              ? numeral(n.toString()).format("0,0.[000000]")
-              : n < 0.000009
-              ? Big(n).toFixed(10)
-              : n;
-          i.denom = "GARD";
+          if (i.amount != 0) {
+            const n = Big(i.amount).div(10 ** 6);
+            i.amount =
+              n >= 1
+                ? numeral(n.toString()).format("0,0.[000000]")
+                : n < 0.000009
+                ? Big(n).toFixed(10)
+                : n;
+            i.denom = "GARD";
+          } else {
+            i.amount = 0;
+            i.denom = "GARD";
+          }
         } else if (i.denom === "uggt") {
-          const n = Big(i.amount).div(10 ** 6);
-          i.amount =
-            n >= 1
-              ? numeral(n.toString()).format("0,0.[000000]")
-              : n < 0.000009
-              ? Big(n).toFixed(10)
-              : n;
-          i.denom = "GGT";
+          if (i.amount != 0) {
+            const n = Big(i.amount).div(10 ** 6);
+            i.amount =
+              n >= 1
+                ? numeral(n.toString()).format("0,0.[000000]")
+                : n < 0.000009
+                ? Big(n).toFixed(10)
+                : n;
+            i.denom = "GGT";
+          } else {
+            i.amount = 0;
+            i.denom = "GGT";
+          }
         } else {
           i.amount = numeral(i.amount).format("0,0.[000000]");
           i.denom = i.denom.toUpperCase();
