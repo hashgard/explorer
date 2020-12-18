@@ -94,10 +94,8 @@ export default {
       }
     },
     async fetchCurrentTime() {
-      const {
-        data
-      } = await ajax.get('https://quan.suning.com/getSysTime.do');
-      return data.sysTime2
+      const res = await ajax.get('https://rest.hashgard.com/gard/api/server/time')
+      return res.headers.date
     }
   },
   // async created() {
