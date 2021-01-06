@@ -82,10 +82,10 @@ export const menu = [
         name: "txCate.governance",
         link: "/txs/?module=gov"
       },
-      {
-        name: "txCate.staking",
-        link: "/txs?module=staking"
-      },
+      // {
+      //   name: "txCate.staking",
+      //   link: "/txs?module=staking"
+      // },
       {
         name: "txCate.distribution",
         link: "/txs?module=distribution"

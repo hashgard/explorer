@@ -83,7 +83,7 @@
       <el-row :gutter="24">
         <el-col
           :xs="24"
-          :sm="12"
+          :sm="24"
         >
           <card title="Delegations">
             <el-table
@@ -134,7 +134,7 @@
             </div>
           </card>
         </el-col>
-        <el-col
+        <!-- <el-col
           :xs="24"
           :sm="12"
         >
@@ -167,14 +167,14 @@
                   >{{ scope.row.delegator_address.slice(0, 20) }}...</span>
                 </template>
               </el-table-column>
-              <!-- <el-table-column label="Validator Address">
+              <el-table-column label="Validator Address">
                 <template slot-scope="scope">
                   <span
                     class="link"
                     @click="goValidator(scope.row.validator_address)"
                   >{{scope.row.validator_address.slice(0,20)}}...</span>
                 </template>
-              </el-table-column> -->
+              </el-table-column>
             </el-table>
             <div class="card-footer">
               <el-pagination
@@ -190,7 +190,7 @@
               />
             </div>
           </card>
-        </el-col>
+        </el-col> -->
       </el-row>
       <card title="redelegations to">
         <el-table
